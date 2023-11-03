@@ -18,7 +18,7 @@ class OzonAPI:
         pass
 
     @staticmethod
-    async def __paginator(item_list: list, size: int) -> List[tuple]:
+    def paginator(item_list: list, size: int) -> List[tuple]:
         it = iter(item_list)
         return iter(lambda: tuple(itertools.islice(it, size)), ())
 
@@ -73,24 +73,16 @@ class OzonAPI:
     async def delete_cards(self, archive_item: list, delete_item: list, ozon_token: str, client_id: int):
         delete_url = "https://api-seller.ozon.ru/v2/products/delete"
         archive_url = "https://api-seller.ozon.ru/v1/product/archive"
-        # archive_item_chunks = await self.__paginator(item_list=archive_item_list, size=100)
-        # delete_item_chunks = await self.__paginator(item_list=delete_item_list, size=300)
-        # for chunk in archive_item_chunks:
         data = dict(product_id=archive_item)
         data = json.dumps(data)
         a = await self.__request(url=archive_url, data=data, ozon_token=ozon_token, client_id=client_id)
         logger.warning(a)
         await asyncio.sleep(1)
-        # for chunk in delete_item_chunks:
         data = dict(products=delete_item)
         data = json.dumps(data, ensure_ascii=False)
         b = await self.__request(url=delete_url, data=data, ozon_token=ozon_token, client_id=client_id)
         if not b["status"][0]["is_deleted"]:
-            unarchive_url = "https://api-seller.ozon.ru/v1/product/unarchive"
-            data = dict(product_id=archive_item)
-            data = json.dumps(data)
-            c = await self.__request(url=unarchive_url, data=data, ozon_token=ozon_token, client_id=client_id)
-            logger.warning(c)
+            return True
         logger.warning(b)
         await asyncio.sleep(1)
 
@@ -137,11 +129,13 @@ class OzonAPI:
         return await self.__request(url=url, data=data, ozon_token=ozon_token, client_id=client_id)
 
 
+
+
 async def test():
     ozon = OzonAPI()
     token = "99fd2635-b49e-43ea-9bb6-a7bbdf7a0100"
     client_id = "667260"
-    await ozon.clone_status(task_id=863516561, ozon_token=token, client_id=client_id)
+    await ozon.test(ozon_token=token, client_id=client_id)
 
 
 if __name__ == "__main__":

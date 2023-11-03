@@ -110,16 +110,19 @@ async def main_block(message: Message, state: FSMContext):
     error_items = [dict(offer_id=i["offer_id"], product_id=i["product_id"]) for i in clone_result]
     count_msg = await message.answer(f"Принудительно скопировано 0 / {len(error_items)} товаров")
     counter = 0
+    archived_articles = []
     for item in error_items:
         offer_id = item["offer_id"]
         product_id = item["product_id"]
         try:
             card_attrs = await ozon_api.get_card_attrs(offer_id=offer_id, ozon_token=ozon_token, client_id=client_id)
             time.sleep(9)
-            await ozon_api.delete_cards(ozon_token=ozon_token,
-                                        client_id=client_id,
-                                        archive_item=[product_id],
-                                        delete_item=[{"offer_id": offer_id}])
+            is_archived = await ozon_api.delete_cards(ozon_token=ozon_token,
+                                                      client_id=client_id,
+                                                      archive_item=[product_id],
+                                                      delete_item=[{"offer_id": offer_id}])
+            if is_archived:
+                archived_articles.append(offer_id)
             if offer_id.split("-")[0] == "РСВ":
                 oreht_data = await get_card_info(item_art=offer_id.split("-")[-1])
                 if not oreht_data:
@@ -140,7 +143,12 @@ async def main_block(message: Message, state: FSMContext):
                 await message.answer(f"{offer_id} не найден")
         except Exception as ex:
             await message.answer(f"{offer_id} error: {ex}")
-
+    archived_items_chunks = ozon_api.paginator(item_list=archived_articles, size=20)
+    for chunk in archived_items_chunks:
+        text = ["Созданные ранее товары, сейчас в архиве:", "-" * 5]
+        for item in chunk:
+            text.append(hcode(item))
+        await message.answer("\n".join(text))
     os.remove(file_name)
     await state.set_state(AdminFSM.home)
     text = "✅ Цикл завершён"
