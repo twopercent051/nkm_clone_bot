@@ -89,7 +89,8 @@ class OzonAPI:
             unarchive_url = "https://api-seller.ozon.ru/v1/product/unarchive"
             data = dict(product_id=archive_item)
             data = json.dumps(data)
-            await self.__request(url=unarchive_url, data=data, ozon_token=ozon_token, client_id=client_id)
+            c = await self.__request(url=unarchive_url, data=data, ozon_token=ozon_token, client_id=client_id)
+            logger.warning(c)
         logger.warning(b)
         await asyncio.sleep(1)
 
