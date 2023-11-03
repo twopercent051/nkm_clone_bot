@@ -79,11 +79,13 @@ class OzonAPI:
             data = dict(product_id=list(chunk))
             data = json.dumps(data)
             a = await self.__request(url=archive_url, data=data, ozon_token=ozon_token, client_id=client_id)
+            logger.warning(a)
         await asyncio.sleep(1)
         for chunk in delete_item_chunks:
             data = dict(products=list(chunk))
             data = json.dumps(data, ensure_ascii=False)
             b = await self.__request(url=delete_url, data=data, ozon_token=ozon_token, client_id=client_id)
+            logger.warning(b)
             await asyncio.sleep(1)
 
     async def get_card_attrs(self, offer_id: str, ozon_token: str, client_id: int) -> dict:
