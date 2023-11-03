@@ -5,7 +5,7 @@ from typing import List
 
 import aiohttp
 
-from create_bot import config
+from create_bot import config, logger
 
 
 # ozon_token = config.misc.ozon_token
@@ -60,7 +60,8 @@ class OzonAPI:
         data = json.dumps(data)
         result = await self.__request(url=url, data=data, ozon_token=ozon_token, client_id=client_id)
         items_result = result["result"]["items"]
-        print(items_result)
+        for item in items_result:
+            logger.warning(item)
         errors = []
         for item in items_result:
             if len(item["errors"]) > 0 and item["product_id"] != 0:
@@ -126,3 +127,14 @@ class OzonAPI:
                                 width=item_data["width"])])
         data = json.dumps(data)
         return await self.__request(url=url, data=data, ozon_token=ozon_token, client_id=client_id)
+
+
+async def test():
+    ozon = OzonAPI()
+    token = "99fd2635-b49e-43ea-9bb6-a7bbdf7a0100"
+    client_id = "667260"
+    await ozon.clone_status(task_id=863516561, ozon_token=token, client_id=client_id)
+
+
+if __name__ == "__main__":
+    asyncio.run(test())
