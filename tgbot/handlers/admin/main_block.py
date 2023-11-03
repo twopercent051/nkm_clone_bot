@@ -118,8 +118,8 @@ async def main_block(message: Message, state: FSMContext):
             time.sleep(9)
             await ozon_api.delete_cards(ozon_token=ozon_token,
                                         client_id=client_id,
-                                        archive_item_list=[product_id],
-                                        delete_item_list=[{"offer_id": offer_id}])
+                                        archive_item=[product_id],
+                                        delete_item=[{"offer_id": offer_id}])
             if offer_id.split("-")[0] == "РСВ":
                 oreht_data = await get_card_info(item_art=offer_id.split("-")[-1])
                 if not oreht_data:

@@ -70,23 +70,28 @@ class OzonAPI:
                                    error=item["errors"][0]["code"]))
         return errors
 
-    async def delete_cards(self, archive_item_list: list, delete_item_list: list, ozon_token: str, client_id: int):
+    async def delete_cards(self, archive_item: list, delete_item: list, ozon_token: str, client_id: int):
         delete_url = "https://api-seller.ozon.ru/v2/products/delete"
         archive_url = "https://api-seller.ozon.ru/v1/product/archive"
-        archive_item_chunks = await self.__paginator(item_list=archive_item_list, size=100)
-        delete_item_chunks = await self.__paginator(item_list=delete_item_list, size=300)
-        for chunk in archive_item_chunks:
-            data = dict(product_id=list(chunk))
-            data = json.dumps(data)
-            a = await self.__request(url=archive_url, data=data, ozon_token=ozon_token, client_id=client_id)
-            logger.warning(a)
+        # archive_item_chunks = await self.__paginator(item_list=archive_item_list, size=100)
+        # delete_item_chunks = await self.__paginator(item_list=delete_item_list, size=300)
+        # for chunk in archive_item_chunks:
+        data = dict(product_id=archive_item)
+        data = json.dumps(data)
+        a = await self.__request(url=archive_url, data=data, ozon_token=ozon_token, client_id=client_id)
+        logger.warning(a)
         await asyncio.sleep(1)
-        for chunk in delete_item_chunks:
-            data = dict(products=list(chunk))
-            data = json.dumps(data, ensure_ascii=False)
-            b = await self.__request(url=delete_url, data=data, ozon_token=ozon_token, client_id=client_id)
-            logger.warning(b)
-            await asyncio.sleep(1)
+        # for chunk in delete_item_chunks:
+        data = dict(products=delete_item)
+        data = json.dumps(data, ensure_ascii=False)
+        b = await self.__request(url=delete_url, data=data, ozon_token=ozon_token, client_id=client_id)
+        if not b["status"][0]["is_deleted"]:
+            unarchive_url = "https://api-seller.ozon.ru/v1/product/unarchive"
+            data = dict(product_id=archive_item)
+            data = json.dumps(data)
+            await self.__request(url=unarchive_url, data=data, ozon_token=ozon_token, client_id=client_id)
+        logger.warning(b)
+        await asyncio.sleep(1)
 
     async def get_card_attrs(self, offer_id: str, ozon_token: str, client_id: int) -> dict:
         url = "https://api-seller.ozon.ru/v3/products/info/attributes"
